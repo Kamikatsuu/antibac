@@ -1,0 +1,241 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isStaffOrAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email in ['jamessvenansali@gmail.com', 'sheepyawa@gmail.com'] ||
+        (request.auth.token.role in ['admin', 'staff', 'registrar', 'moderator']) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff', 'registrar', 'moderator'])
+      );
+    }
+    
+    function isAlumni() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'alumni'
+      );
+    }
+
+    function isVerifiedAlumni() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'alumni' &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.verified == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.verificationStatus == 'verified')
+      );
+    }
+
+    function isVerifiedUser() {
+      return isStaffOrAdmin() || isVerifiedAlumni() || isVerifiedEmployer();
+    }
+
+    function isVerifiedEmployer() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'employer' &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.verified == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.verificationStatus == 'verified')
+      );
+    }
+
+    function canPostJobs() {
+      return isStaffOrAdmin() || (
+        isVerifiedEmployer() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.canPostJobs == true
+      ) || isVerifiedAlumni();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Unverified users can only access their own profile; verified or staff can read directory
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId ||
+        isStaffOrAdmin() ||
+        isVerifiedAlumni() ||
+        isVerifiedEmployer()
+      );
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isStaffOrAdmin());
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isStaffOrAdmin());
+      
+      match /followers/{followerUid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && (isVerifiedAlumni() || isStaffOrAdmin());
+      }
+      match /following/{followingUid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && (isVerifiedAlumni() || isStaffOrAdmin());
+      }
+      match /connections/{connectedUid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && (isVerifiedAlumni() || isStaffOrAdmin());
+      }
+    }
+
+    // Friend Requests (Alumni-to-alumni connections: strictly for verified users)
+    match /friend_requests/{requestId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid ||
+        isStaffOrAdmin()
+      );
+      allow create: if isSignedIn() && (
+        request.auth.uid == request.resource.data.fromUid &&
+        (isVerifiedAlumni() || isStaffOrAdmin())
+      );
+      allow update: if isSignedIn() && (
+        resource.data.toUid == request.auth.uid ||
+        resource.data.fromUid == request.auth.uid ||
+        isStaffOrAdmin()
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid ||
+        isStaffOrAdmin()
+      );
+    }
+
+    // Connections collection (Tracks relationship status between members)
+    match /connections/{connectionId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.connectedUserId == request.auth.uid ||
+        (resource.data.participants != null && request.auth.uid in resource.data.participants) ||
+        isStaffOrAdmin()
+      );
+      allow create: if isSignedIn() && (isVerifiedAlumni() || isStaffOrAdmin());
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.connectedUserId == request.auth.uid ||
+        (resource.data.participants != null && request.auth.uid in resource.data.participants) ||
+        isStaffOrAdmin()
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.connectedUserId == request.auth.uid ||
+        isStaffOrAdmin()
+      );
+    }
+
+    // Conversations collection (Strict participant-based isolation & query protection)
+    match /conversations/{conversationId} {
+      // Individual document access: only if userId is explicitly included in participants
+      allow get: if isSignedIn() && (
+        request.auth.uid in resource.data.participants || isStaffOrAdmin()
+      );
+      // Query check: prevent users from querying conversations they are not part of
+      allow list: if isSignedIn() && (
+        request.auth.uid in resource.data.participants
+      );
+      allow create: if isSignedIn() && (
+        request.auth.uid in request.resource.data.participants &&
+        isVerifiedUser()
+      );
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.participants
+      );
+      allow delete: if isStaffOrAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants ||
+          isStaffOrAdmin()
+        );
+        allow create: if isSignedIn() && (
+          request.auth.uid == request.resource.data.userId &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+        );
+        allow update, delete: if isSignedIn() && (
+          resource.data.userId == request.auth.uid || isStaffOrAdmin()
+        );
+      }
+    }
+
+    // Chats and nested messages (Strict peer-to-peer message isolation)
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid in resource.data.memberIds
+      );
+      allow create: if isSignedIn() && (
+        request.auth.uid in request.resource.data.memberIds &&
+        isVerifiedUser()
+      );
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.memberIds
+      );
+      allow delete: if isStaffOrAdmin();
+      
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.memberIds
+        );
+        allow create: if isSignedIn() && (
+          request.auth.uid == request.resource.data.senderId &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.memberIds
+        );
+        allow update, delete: if isSignedIn() && (
+          resource.data.senderId == request.auth.uid || isStaffOrAdmin()
+        );
+      }
+    }
+
+    // Notifications (User can only read/update/delete their own)
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isSignedIn() && (
+        resource.data.toUid == request.auth.uid
+      );
+      allow create: if isSignedIn();
+    }
+
+    // Events (Protected route: only verified users or staff can access)
+    match /events/{eventId} {
+      allow read: if isSignedIn() && isVerifiedUser();
+      allow create, update, delete: if isStaffOrAdmin();
+      
+      match /likes/{userId} {
+        allow read, write: if isSignedIn() && isVerifiedUser();
+      }
+      match /comments/{commentId} {
+        allow read: if isSignedIn() && isVerifiedUser();
+        allow create: if isSignedIn() && isVerifiedUser();
+        allow delete: if isStaffOrAdmin() || (isSignedIn() && resource.data.authorId == request.auth.uid);
+      }
+    }
+
+    // Announcements (Protected route: only verified users or staff can access)
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn() && isVerifiedUser();
+      allow create, update, delete: if isStaffOrAdmin();
+    }
+
+    // Opportunities & Jobs (Protected route: only verified users or staff can access)
+    match /opportunities/{opportunityId} {
+      allow read: if isSignedIn() && isVerifiedUser();
+      allow create: if isSignedIn() && canPostJobs();
+      allow update: if isStaffOrAdmin() || (isSignedIn() && resource.data.postedBy == request.auth.uid);
+      allow delete: if isStaffOrAdmin() || (isSignedIn() && resource.data.postedBy == request.auth.uid);
+    }
+
+    // Official Registrar Registry Records (Uploaded CSV/Excel masterlist)
+    match /registry_records/{recordId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isStaffOrAdmin();
+      // Allow registration linking by matched user or staff/admin
+      allow update: if isSignedIn();
+    }
+
+    // Fallback catch-all for other collections
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

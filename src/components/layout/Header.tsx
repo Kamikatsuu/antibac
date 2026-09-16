@@ -84,7 +84,7 @@ export const Header: React.FC<{
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-lg text-stone-900 tracking-tight">St. Cecilia's</span>
+                <span className="font-serif font-bold text-lg text-stone-900 tracking-tight">St. Cecilia's College</span>
                 <span className="hidden sm:inline-block px-2 py-0.5 text-xs font-bold rounded-full bg-red-50 text-[#8B181B] border border-red-200">
                   Alumni Portal
                 </span>
@@ -131,37 +131,36 @@ export const Header: React.FC<{
               </button>
             )}
 
+            {/* Digital ID Pass Button - Always visible and active */}
+            <button
+              type="button"
+              id="header-digital-id-button"
+              onClick={() => setShowDigitalCardModal(true)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs transition-all active:scale-95 cursor-pointer"
+              title="View St. Cecilia's College Digital ID Pass & Campus Gate Pass"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span className="inline">Digital ID</span>
+            </button>
+
             {/* Sign In & Register when not logged in */}
             {!currentUser && onOpenAuth && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenAuth('login')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg text-stone-700 hover:text-[#991B1B] hover:bg-stone-100 border border-stone-200 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg text-stone-700 hover:text-[#991B1B] hover:bg-stone-100 border border-stone-200 transition-colors cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5 text-[#991B1B]" />
                   <span>Sign In</span>
                 </button>
                 <button
                   onClick={() => onOpenAuth('register')}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-[#991B1B] hover:bg-[#7f1616] text-white shadow-xs transition-colors"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-[#991B1B] hover:bg-[#7f1616] text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Register</span>
                 </button>
               </div>
-            )}
-
-            {/* Digital ID Pass Button */}
-            {currentUser && (
-              <button
-                type="button"
-                onClick={() => setShowDigitalCardModal(true)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs transition-all active:scale-95"
-                title="View Digital Alumni ID (Banking Card Pass)"
-              >
-                <CreditCard className="w-3.5 h-3.5 text-amber-700" />
-                <span className="hidden sm:inline">Digital ID</span>
-              </button>
             )}
 
             {/* Verified Role Badge */}
@@ -376,7 +375,7 @@ export const Header: React.FC<{
       />
 
       {/* Digital Alumni Card (Banking Card Pass) Modal */}
-      {showDigitalCardModal && currentUser && (
+      {showDigitalCardModal && (
         <div
           id="digital-id-modal-overlay"
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-3 sm:p-5 animate-in fade-in"
@@ -394,17 +393,17 @@ export const Header: React.FC<{
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-white">
-                    Digital Alumni Identification Pass
+                    St. Cecilia's College Digital Pass
                   </h3>
                   <p className="text-[11px] text-stone-400">
-                    Official banking-style NFC & turnstile credential
+                    Official NFC & turnstile campus identification credential
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowDigitalCardModal(false)}
-                className="p-1.5 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 transition-colors"
+                className="p-1.5 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -412,26 +411,78 @@ export const Header: React.FC<{
             </div>
 
             <div className="py-1">
-              <DigitalAlumniCard user={currentUser} />
+              <DigitalAlumniCard
+                user={
+                  currentUser || {
+                    uid: 'preview_scc',
+                    name: "St. Cecilia's Graduate",
+                    email: 'alumni@stcecilia.edu',
+                    role: 'alumni',
+                    batch: '2024',
+                    course: 'B.S. Information Technology',
+                    studentId: 'SCC-2024-0001',
+                    location: 'Cebu, Philippines',
+                    isVerified: true,
+                    createdAt: new Date().toISOString()
+                  }
+                }
+              />
             </div>
 
-            <div className="mt-4 pt-3 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
-              <span>Card Status: <strong className="text-emerald-400 font-semibold">Active & Verified</strong></span>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDigitalCardModal(false);
-                  setActiveTab('profile');
-                  setTimeout(() => {
-                    const el = document.getElementById('digital-id-section');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                }}
-                className="text-amber-400 hover:text-amber-300 font-semibold"
-              >
-                Manage in Profile →
-              </button>
-            </div>
+            {currentUser ? (
+              <div className="mt-4 pt-3 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400">
+                <span>
+                  Card Status:{' '}
+                  <strong className="text-emerald-400 font-semibold">Active & Verified</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDigitalCardModal(false);
+                    setActiveTab('profile');
+                    setTimeout(() => {
+                      const el = document.getElementById('digital-id-section');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+                >
+                  Manage in Profile →
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 pt-3 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <span className="text-stone-400 text-center sm:text-left">
+                  Sign in or register to claim your personal SCC Digital Pass.
+                </span>
+                <div className="flex items-center gap-2">
+                  {onOpenAuth && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDigitalCardModal(false);
+                          onOpenAuth('login');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-medium transition-colors cursor-pointer"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDigitalCardModal(false);
+                          onOpenAuth('register');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-[#991B1B] hover:bg-[#7f1616] text-white font-bold transition-colors cursor-pointer"
+                      >
+                        Register ID
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

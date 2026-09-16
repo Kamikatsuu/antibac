@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 import {
   Users,
   Calendar,
@@ -27,6 +28,30 @@ import {
 import { useAlumni } from '../../context/AlumniContext';
 import { filterAnnouncementsForUser, calculateProfileCompletion } from '../../services/automationService';
 import { RecentActivityFeed } from './RecentActivityFeed';
+import { AlumniDistributionChart } from './AlumniDistributionChart';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    }
+  }
+};
+
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
 
 export const DashboardView: React.FC = () => {
   const {
@@ -124,9 +149,17 @@ export const DashboardView: React.FC = () => {
   const curatedOpportunities = opportunities.slice(0, 3);
 
   return (
-    <div className="space-y-6 pb-12">
+    <motion.div
+      className="space-y-6 pb-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Personalized Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white p-6 sm:p-8 shadow-sm">
+      <motion.div
+        variants={cardItemVariants}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white p-6 sm:p-8 shadow-sm"
+      >
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-blue-100 text-xs font-semibold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
@@ -165,10 +198,10 @@ export const DashboardView: React.FC = () => {
 
         {/* Decorative background element */}
         <div className="absolute right-0 top-0 -bottom-10 w-96 bg-gradient-to-l from-white/10 to-transparent pointer-events-none rounded-r-2xl transform rotate-12" />
-      </div>
+      </motion.div>
 
       {/* Live Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <motion.div variants={cardItemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-stone-200 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Total Members</span>
@@ -224,10 +257,15 @@ export const DashboardView: React.FC = () => {
           </div>
           <p className="text-[11px] text-stone-400 mt-1">SF, NYC, Seattle, London</p>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Alumni Demographics & Cohort Distribution Visualization */}
+      <motion.div variants={cardItemVariants}>
+        <AlumniDistributionChart users={users} currentUser={currentUser} />
+      </motion.div>
 
       {/* Quick Action Circles with Live Badges */}
-      <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-2xs">
+      <motion.div variants={cardItemVariants} className="bg-white p-5 rounded-xl border border-stone-200 shadow-2xs">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-stone-900 tracking-tight">Quick Actions</h2>
           <span className="text-xs text-stone-400">Direct navigation</span>
@@ -311,11 +349,11 @@ export const DashboardView: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Friend Request Banner with Accept/Decline */}
       {incomingRequests.length > 0 && (
-        <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 sm:p-5 shadow-2xs">
+        <motion.div variants={cardItemVariants} className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 sm:p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-md bg-amber-500 text-white">
@@ -382,12 +420,12 @@ export const DashboardView: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Automated Profile Completion & Career Tracer Reminder (Triggered when < 80%) */}
       {currentUser && profileCompletion.percentage < 80 && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-2xs">
+        <motion.div variants={cardItemVariants} className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-2xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -422,14 +460,16 @@ export const DashboardView: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Recent Activity Feed (Unified Events, Announcements & Connection Requests) */}
-      <RecentActivityFeed onOpenAnnouncement={(ann) => setSelectedAnnouncementForModal(ann)} />
+      <motion.div variants={cardItemVariants}>
+        <RecentActivityFeed onOpenAnnouncement={(ann) => setSelectedAnnouncementForModal(ann)} />
+      </motion.div>
 
       {/* Personalized Announcement Feed (Graduation Year & Department Targeted) */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+      <motion.div variants={cardItemVariants} className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
           <div>
             <div className="flex items-center gap-2">
@@ -588,10 +628,10 @@ export const DashboardView: React.FC = () => {
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Alumni Near You Section (Real Firestore Data) */}
-      <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-2xs">
+      <motion.div variants={cardItemVariants} className="bg-white p-5 rounded-xl border border-stone-200 shadow-2xs">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-2">
@@ -697,10 +737,10 @@ export const DashboardView: React.FC = () => {
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {/* Two Column Section: Upcoming Events Calendar & Curated Opportunities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={cardItemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Upcoming Events Calendar */}
         <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-2xs flex flex-col justify-between">
@@ -845,7 +885,7 @@ export const DashboardView: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Selected Announcement Detail Modal */}
       {selectedAnnouncementForModal && (
@@ -938,6 +978,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

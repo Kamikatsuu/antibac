@@ -74,7 +74,8 @@ import {
   markRegistryRecordAsRegistered,
   getRegistrarRecords,
   isValidStudentIdPattern,
-  normalizeStudentId
+  normalizeStudentId,
+  syncRegistrarRecordsWithFirestore
 } from '../services/studentVerificationService';
 import { alumniService } from '../services/alumniService';
 import { checkAnniversariesAndGreetings, calculateProfileCompletion } from '../services/automationService';
@@ -236,26 +237,26 @@ interface AlumniContextType {
 const AlumniContext = createContext<AlumniContextType | null>(null);
 
 const STORAGE_KEYS = {
-  USER_ID: 'alumni_auth_session_real_v1',
-  USERS: 'alumni_users_v4',
-  REQUESTS: 'alumni_friend_requests_v4',
-  CHATS: 'alumni_chats_v4',
-  MESSAGES: 'alumni_messages_v4',
-  NOTIFICATIONS: 'alumni_notifications_v4',
-  EVENTS: 'alumni_events_v4',
-  ANNOUNCEMENTS: 'alumni_announcements_v4',
-  OPPORTUNITIES: 'alumni_opportunities_v4',
-  APPLICATIONS: 'alumni_job_applications_v4',
-  CHAPTERS: 'alumni_chapters_v4',
-  MILESTONES: 'alumni_milestones_v4',
-  FOLLOWING: 'alumni_following_v4',
-  CONNECTIONS: 'alumni_connections_v4',
-  SETTINGS: 'alumni_settings_v4',
-  GALLERY: 'alumni_gallery_v4',
-  AUDIT_LOGS: 'alumni_audit_logs_v1',
-  AUTOMATION_JOBS: 'alumni_automation_jobs_v1',
-  CAREER_SURVEYS: 'alumni_career_surveys_v1',
-  BACKUPS: 'alumni_backups_v1'
+  USER_ID: 'alumni_auth_session_real_v2',
+  USERS: 'alumni_users_v5',
+  REQUESTS: 'alumni_friend_requests_v5',
+  CHATS: 'alumni_chats_v5',
+  MESSAGES: 'alumni_messages_v5',
+  NOTIFICATIONS: 'alumni_notifications_v5',
+  EVENTS: 'alumni_events_v5',
+  ANNOUNCEMENTS: 'alumni_announcements_v5',
+  OPPORTUNITIES: 'alumni_opportunities_v5',
+  APPLICATIONS: 'alumni_job_applications_v5',
+  CHAPTERS: 'alumni_chapters_v5',
+  MILESTONES: 'alumni_milestones_v5',
+  FOLLOWING: 'alumni_following_v5',
+  CONNECTIONS: 'alumni_connections_v5',
+  SETTINGS: 'alumni_settings_v5',
+  GALLERY: 'alumni_gallery_v5',
+  AUDIT_LOGS: 'alumni_audit_logs_v2',
+  AUTOMATION_JOBS: 'alumni_automation_jobs_v2',
+  CAREER_SURVEYS: 'alumni_career_surveys_v2',
+  BACKUPS: 'alumni_backups_v2'
 };
 
 export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -821,6 +822,11 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Seed directory if empty via alumniService
         await alumniService.seedDirectoryIfEmpty(INITIAL_USERS);
 
+        // Ensure official student registry records are seeded to Firestore
+        await syncRegistrarRecordsWithFirestore().catch((err) => {
+          console.warn('Initial Registrar records sync notice:', err);
+        });
+
         for (const ev of INITIAL_EVENTS) {
           saveEventToFirestore(ev).catch(() => {});
         }
@@ -1087,17 +1093,17 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           isVerified: false,
           status: 'format_error',
           studentId: 'None',
-          message: "Student ID 'None' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192)."
+          message: "Student ID 'None' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192)."
         };
       }
 
-      // Check pattern requirement: SC-YYYY-XXXX (e.g. SC-2020-0192)
+      // Check pattern requirement: SCC-YYYY-XXXX (e.g. SCC-2020-0192)
       if (!isValidStudentIdPattern(rawId)) {
         return {
           isVerified: false,
           status: 'format_error',
           studentId: rawId,
-          message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`
+          message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192).`
         };
       }
 
@@ -1117,7 +1123,7 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             isVerified: false,
             status: 'not_found',
             studentId: rawId,
-            message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`
+            message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192).`
           };
         }
 
@@ -1134,7 +1140,7 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isVerified: false,
         status: 'not_found',
         studentId: rawId,
-        message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`
+        message: `Student ID '${rawId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192).`
       };
     },
     [currentUser]
@@ -1142,11 +1148,20 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const login = (identifier: string, pass: string): boolean => {
     const trimmed = identifier.trim().toLowerCase();
+    const normalizedInputId = normalizeStudentId(trimmed).toLowerCase();
     const user = users.find(
       (u) =>
         u.email.toLowerCase() === trimmed ||
-        (u.studentId && u.studentId.toLowerCase() === trimmed) ||
-        (u.employeeId && u.employeeId.toLowerCase() === trimmed)
+        (trimmed === 'juan@email.com' && u.email === 'alumni@stcecilia.edu') ||
+        (u.studentId && (
+          u.studentId.toLowerCase() === trimmed ||
+          normalizeStudentId(u.studentId).toLowerCase() === normalizedInputId
+        )) ||
+        (u.employeeId && (
+          u.employeeId.toLowerCase() === trimmed ||
+          u.employeeId.toLowerCase() === `scc-${trimmed}` ||
+          trimmed.replace(/^scc-/i, '') === u.employeeId.toLowerCase().replace(/^scc-/i, '')
+        ))
     );
     if (user) {
       if (user.password && pass && user.password !== pass) {
@@ -1187,10 +1202,10 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (role === 'alumni') {
       const rawStudentId = (data.studentId || '').trim();
 
-      // Specifically reject accounts if Student ID is missing or does not match expected format SC-YYYY-XXXX
+      // Specifically reject accounts if Student ID is missing or does not match expected format SCC-YYYY-XXXX
       if (!rawStudentId || !isValidStudentIdPattern(rawStudentId)) {
         showToast(
-          `Student ID '${rawStudentId || 'None'}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`,
+          `Student ID '${rawStudentId || 'None'}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192).`,
           'error'
         );
         return false;
@@ -1201,7 +1216,7 @@ export const AlumniProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (!verification.isVerified || !verification.record) {
         showToast(
           verification.message ||
-            `Student ID '${rawStudentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`,
+            `Student ID '${rawStudentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2024-0001 or SCC-2020-0192).`,
           'error'
         );
         return false;

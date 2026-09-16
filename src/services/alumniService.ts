@@ -97,7 +97,6 @@ export const alumniService = {
    * READ: Fetch all alumni directory members from Firestore
    */
   async getAllAlumni(): Promise<UserProfile[]> {
-    if (!auth.currentUser) return [];
     const colPath = FIRESTORE_COLLECTIONS.USERS;
     try {
       const colRef = collection(db, colPath);
@@ -108,7 +107,8 @@ export const alumniService = {
       });
       return results;
     } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, colPath);
+      console.warn('Failed to fetch alumni directory from Firestore:', error);
+      return [];
     }
   },
 
@@ -119,7 +119,6 @@ export const alumniService = {
     onUpdate: (alumni: UserProfile[]) => void,
     onError?: (error: unknown) => void
   ): () => void {
-    if (!auth.currentUser) return () => {};
     const colPath = FIRESTORE_COLLECTIONS.USERS;
     const colRef = collection(db, colPath);
 
@@ -136,8 +135,6 @@ export const alumniService = {
         console.warn('Alumni Directory Firestore subscription error:', error);
         if (onError) {
           onError(error);
-        } else {
-          handleFirestoreError(error, OperationType.LIST, colPath);
         }
       }
     );
@@ -237,7 +234,6 @@ export const alumniService = {
    * Populate Firestore with initial alumni records if directory collection is empty
    */
   async seedDirectoryIfEmpty(seedList: UserProfile[]): Promise<{ seeded: boolean; count: number }> {
-    if (!auth.currentUser) return { seeded: false, count: 0 };
     const colPath = FIRESTORE_COLLECTIONS.USERS;
     try {
       const colRef = collection(db, colPath);

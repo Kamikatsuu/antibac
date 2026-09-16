@@ -20,7 +20,7 @@ const REGISTRY_CONFLICTS_STORAGE_KEY = 'st_cecilia_registry_conflicts';
  */
 export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
   {
-    studentId: 'SC-2020-0192',
+    studentId: 'SCC-2020-0192',
     fullName: 'Juan Dela Cruz',
     batchYear: '2024',
     course: 'B.S. Information Technology',
@@ -31,7 +31,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2024-06-01'
   },
   {
-    studentId: 'SC-2020-0541',
+    studentId: 'SCC-2020-0541',
     fullName: 'Maria Cristina Santos',
     batchYear: '2024',
     course: 'B.S. Computer Science',
@@ -42,7 +42,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2024-06-01'
   },
   {
-    studentId: 'SC-2021-0288',
+    studentId: 'SCC-2021-0288',
     fullName: 'Joshua Kenneth Tan',
     batchYear: '2025',
     course: 'B.S. Information Technology',
@@ -53,7 +53,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2025-05-15'
   },
   {
-    studentId: 'SC-2021-0677',
+    studentId: 'SCC-2021-0677',
     fullName: 'Katrina Gomez',
     batchYear: '2025',
     course: 'B.S. Accountancy',
@@ -64,7 +64,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2025-05-15'
   },
   {
-    studentId: 'SC-2016-0812',
+    studentId: 'SCC-2016-0812',
     fullName: 'Bea Alonzo',
     batchYear: '2020',
     course: 'B.S. Nursing',
@@ -75,7 +75,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2020-07-01'
   },
   {
-    studentId: 'SC-2017-0433',
+    studentId: 'SCC-2017-0433',
     fullName: 'Rafael Tan',
     batchYear: '2021',
     course: 'B.S. Computer Science',
@@ -86,7 +86,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2021-06-01'
   },
   {
-    studentId: 'SC-2015-0921',
+    studentId: 'SCC-2015-0921',
     fullName: 'Camille Reyes',
     batchYear: '2019',
     course: 'B.S. Business Administration',
@@ -97,7 +97,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2019-06-01'
   },
   {
-    studentId: 'SC-2018-0554',
+    studentId: 'SCC-2018-0554',
     fullName: 'Paolo Mendoza',
     batchYear: '2022',
     course: 'B.S. Hospitality Management',
@@ -108,7 +108,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2022-06-15'
   },
   {
-    studentId: 'SC-2019-0312',
+    studentId: 'SCC-2019-0312',
     fullName: 'David Lim',
     batchYear: '2023',
     course: 'B.S. Information Technology',
@@ -119,7 +119,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2023-06-01'
   },
   {
-    studentId: 'SC-2022-0104',
+    studentId: 'SCC-2022-0104',
     fullName: 'Angelo Gabriel Diaz',
     batchYear: '2026',
     course: 'B.S. Computer Engineering',
@@ -130,7 +130,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2026-06-01'
   },
   {
-    studentId: 'SC-2022-0391',
+    studentId: 'SCC-2022-0391',
     fullName: 'Alyssa Nicole Bautista',
     batchYear: '2026',
     course: 'B.S. Information Systems',
@@ -141,7 +141,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     uploadedAt: '2026-06-01'
   },
   {
-    studentId: 'SC-2014-0105',
+    studentId: 'SCC-2014-0105',
     fullName: 'Maria Santos',
     batchYear: '2018',
     course: 'B.S. Education',
@@ -150,7 +150,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     verifiedAt: '2018-05-30'
   },
   {
-    studentId: 'SC-2011-0012',
+    studentId: 'SCC-2011-0012',
     fullName: 'Administrator',
     batchYear: '2015',
     course: 'B.S. Public Administration',
@@ -160,7 +160,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
   },
   // Records from St. Cecilia test student dataset
   {
-    studentId: 'SC-2018-0321',
+    studentId: 'SCC-2018-0321',
     fullName: 'Rafael Tan',
     batchYear: '2022',
     course: 'B.S. Computer Science',
@@ -169,7 +169,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'rafael.tan@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2019-0455',
+    studentId: 'SCC-2019-0455',
     fullName: 'Camille Vergara',
     batchYear: '2023',
     course: 'B.S. Accountancy',
@@ -178,7 +178,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'camille.vergara@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2021-0891',
+    studentId: 'SCC-2021-0891',
     fullName: 'Carlos Mendoza',
     batchYear: '2025',
     course: 'B.S. Business Administration',
@@ -187,7 +187,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'carlos.mendoza@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2017-0234',
+    studentId: 'SCC-2017-0234',
     fullName: 'Patricia Reyes',
     batchYear: '2021',
     course: 'B.S. Hospitality Management',
@@ -196,7 +196,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'patricia.reyes@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2015-0567',
+    studentId: 'SCC-2015-0567',
     fullName: 'Gabriel Santos',
     batchYear: '2019',
     course: 'B.S. Secondary Education',
@@ -205,7 +205,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'gabriel.santos@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2020-0777',
+    studentId: 'SCC-2020-0777',
     fullName: 'Maria Clara De Los Santos',
     batchYear: '2024',
     course: 'B.S. Information Technology',
@@ -214,7 +214,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'mclara@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2022-0314',
+    studentId: 'SCC-2022-0314',
     fullName: 'Angelo Villanueva',
     batchYear: '2026',
     course: 'B.S. Computer Engineering',
@@ -223,7 +223,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'angelo.villanueva@alumni.stcecilia.edu'
   },
   {
-    studentId: 'SC-2018-0911',
+    studentId: 'SCC-2018-0911',
     fullName: 'Kristine Fernandez',
     batchYear: '2022',
     course: 'B.S. Tourism Management',
@@ -242,7 +242,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'marco.perez@unverified.test'
   },
   {
-    studentId: 'SC-2022-9999',
+    studentId: 'SCC-2022-9999',
     fullName: 'Samantha Lee',
     batchYear: '2026',
     course: 'B.S. Psychology',
@@ -251,7 +251,7 @@ export const DEFAULT_REGISTRAR_RECORDS: StudentVerificationRecord[] = [
     email: 'samantha.lee@unverified.test'
   },
   {
-    studentId: 'SC-2018-0000',
+    studentId: 'SCC-2018-0000',
     fullName: 'Jerome Bautista',
     batchYear: '2022',
     course: 'B.S. Criminology',
@@ -278,25 +278,28 @@ export interface RegistryMatchResult {
 }
 
 /**
- * Normalizes Student ID strings to standard St. Cecilia format: SC-YYYY-XXXX
+ * Normalizes Student ID strings to standard St. Cecilia format: SCC-YYYY-XXXX
  */
 export function normalizeStudentId(rawId: string): string {
   if (!rawId) return '';
   const cleaned = rawId.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
   if (/^\d{4}-\d{3,5}$/.test(cleaned)) {
-    return `SC-${cleaned}`;
+    return `SCC-${cleaned}`;
+  }
+  if (cleaned.startsWith('SC-') && !cleaned.startsWith('SCC-')) {
+    return `SCC-${cleaned.slice(3)}`;
   }
   return cleaned;
 }
 
 /**
  * Validates whether the student ID follows St. Cecilia's College official centenary ID formula:
- * SC-YYYY-XXXX (where YYYY is between 1950 and 2159, followed by 3-5 digits, built to endure 100+ years)
+ * SCC-YYYY-XXXX (where YYYY is between 1950 and 2159, followed by 3-5 digits, built to endure 100+ years)
  */
 export function isValidStudentIdPattern(id: string): boolean {
   const norm = normalizeStudentId(id);
   // Century-scale regex covering cohorts across 100+ years (1950 through 2159)
-  const regex = /^SC-(19[5-9]\d|20\d\d|21[0-5]\d)-\d{3,5}$/;
+  const regex = /^(SCC|SC)-(19[5-9]\d|20\d\d|21[0-5]\d)-\d{3,5}$/;
   return regex.test(norm);
 }
 
@@ -657,7 +660,7 @@ export async function verifyStudentRecord(params: {
     if (isUnverified) {
       return {
         isVerified: false,
-        message: `Student ID '${params.studentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`,
+        message: `Student ID '${params.studentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2020-0192).`,
         source: 'unverified'
       };
     }
@@ -682,7 +685,7 @@ export async function verifyStudentRecord(params: {
   // 2. Strict verification check: specifically rejects accounts where the academic record cannot be confirmed by the registrar
   return {
     isVerified: false,
-    message: `Student ID '${params.studentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SC-YYYY-XXXX (e.g. SC-2020-0192).`,
+    message: `Student ID '${params.studentId}' could not be confirmed in St. Cecilia's College registrar records. Expected format: SCC-YYYY-XXXX (e.g. SCC-2020-0192).`,
     source: 'unverified'
   };
 }
@@ -801,7 +804,7 @@ function mapRowsToStudentRecords(rows: any[]): StudentVerificationRecord[] {
     if (!studentId) {
       for (const val of Object.values(row)) {
         const str = String(val || '').trim();
-        if (/^(SC-)?\d{4}-\d{3,5}$/i.test(str)) {
+        if (/^(SCC-)?\d{4}-\d{3,5}$/i.test(str)) {
           studentId = normalizeStudentId(str);
           break;
         }
@@ -811,7 +814,7 @@ function mapRowsToStudentRecords(rows: any[]): StudentVerificationRecord[] {
     // Only add if at least student ID or Name is present
     if (studentId || fullName) {
       records.push({
-        studentId: studentId || `SC-${batchYear || '2024'}-${Math.floor(1000 + Math.random() * 9000)}`,
+        studentId: studentId || `SCC-${batchYear || '2024'}-${Math.floor(1000 + Math.random() * 9000)}`,
         fullName: fullName || 'Cecilian Graduate',
         batchYear: batchYear || '2024',
         course: course || 'Bachelor Degree Program',
@@ -842,7 +845,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
   phone: string;
 }> = [
   {
-    studentId: 'SC-2024-1001',
+    studentId: 'SCC-2024-1001',
     fullName: 'Alexander James Morales',
     batchYear: '2024',
     course: 'B.S. Information Technology',
@@ -852,7 +855,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 917 123 4567'
   },
   {
-    studentId: 'SC-2024-1002',
+    studentId: 'SCC-2024-1002',
     fullName: 'Patricia Anne Navarro',
     batchYear: '2024',
     course: 'B.S. Computer Science',
@@ -862,7 +865,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 918 234 5678'
   },
   {
-    studentId: 'SC-2024-1003',
+    studentId: 'SCC-2024-1003',
     fullName: 'Christian Dave Velasco',
     batchYear: '2024',
     course: 'B.S. Accountancy',
@@ -872,7 +875,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 919 345 6789'
   },
   {
-    studentId: 'SC-2025-2001',
+    studentId: 'SCC-2025-2001',
     fullName: 'Janelle Therese Ramos',
     batchYear: '2025',
     course: 'B.S. Nursing',
@@ -882,7 +885,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 920 456 7890'
   },
   {
-    studentId: 'SC-2025-2002',
+    studentId: 'SCC-2025-2002',
     fullName: 'Miguel Rafael Gutierrez',
     batchYear: '2025',
     course: 'B.S. Business Administration',
@@ -892,7 +895,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 921 567 8901'
   },
   {
-    studentId: 'SC-2026-3001',
+    studentId: 'SCC-2026-3001',
     fullName: 'Samantha Rose Del Rosario',
     batchYear: '2026',
     course: 'B.S. Information Technology',
@@ -902,7 +905,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 922 678 9012'
   },
   {
-    studentId: 'SC-2026-3002',
+    studentId: 'SCC-2026-3002',
     fullName: 'Francis Kenneth Aquino',
     batchYear: '2026',
     course: 'B.S. Hospitality Management',
@@ -912,7 +915,7 @@ export const SAMPLE_TEST_STUDENTS: Array<{
     phone: '+63 923 789 0123'
   },
   {
-    studentId: 'SC-2023-4001',
+    studentId: 'SCC-2023-4001',
     fullName: 'Katrina Marie Mendoza',
     batchYear: '2023',
     course: 'B.S. Education',
@@ -1179,12 +1182,12 @@ export const INITIAL_REGISTRY_CONFLICTS: RegistrationConflictRecord[] = [
     id: 'conflict_01',
     applicantName: 'Juan Carlos Reyes',
     applicantEmail: 'jcreyes.dev@gmail.com',
-    applicantStudentId: 'SC-2020-0192',
+    applicantStudentId: 'SCC-2020-0192',
     applicantBatch: '2024',
     applicantCourse: 'B.S. Information Technology',
-    targetRegistryStudentId: 'SC-2020-0192',
+    targetRegistryStudentId: 'SCC-2020-0192',
     registryRecord: {
-      studentId: 'SC-2020-0192',
+      studentId: 'SCC-2020-0192',
       fullName: 'Juan Dela Cruz',
       batchYear: '2024',
       course: 'B.S. Information Technology',
@@ -1197,18 +1200,18 @@ export const INITIAL_REGISTRY_CONFLICTS: RegistrationConflictRecord[] = [
     confidenceScore: 58,
     flaggedAt: '2026-09-12T10:15:00Z',
     status: 'pending',
-    notes: 'Applicant entered Student ID SC-2020-0192, which belongs to "Juan Dela Cruz" in the official Registrar records. Name divergence ("Juan Carlos Reyes") requires manual credential verification before granting alumni access.'
+    notes: 'Applicant entered Student ID SCC-2020-0192, which belongs to "Juan Dela Cruz" in the official Registrar records. Name divergence ("Juan Carlos Reyes") requires manual credential verification before granting alumni access.'
   },
   {
     id: 'conflict_02',
     applicantName: 'Joshua Kenneth Tan',
     applicantEmail: 'joshua.tan2021@yahoo.com',
-    applicantStudentId: 'SC-2021-0288',
+    applicantStudentId: 'SCC-2021-0288',
     applicantBatch: '2021',
     applicantCourse: 'B.S. Information Technology',
-    targetRegistryStudentId: 'SC-2021-0288',
+    targetRegistryStudentId: 'SCC-2021-0288',
     registryRecord: {
-      studentId: 'SC-2021-0288',
+      studentId: 'SCC-2021-0288',
       fullName: 'Joshua Kenneth Tan',
       batchYear: '2025',
       course: 'B.S. Information Technology',
@@ -1227,12 +1230,12 @@ export const INITIAL_REGISTRY_CONFLICTS: RegistrationConflictRecord[] = [
     id: 'conflict_03',
     applicantName: 'Cristina M. Santos',
     applicantEmail: 'cristina.santos.personal@gmail.com',
-    applicantStudentId: 'SC-2020-0541',
+    applicantStudentId: 'SCC-2020-0541',
     applicantBatch: '2024',
     applicantCourse: 'B.S. Computer Science',
-    targetRegistryStudentId: 'SC-2020-0541',
+    targetRegistryStudentId: 'SCC-2020-0541',
     registryRecord: {
-      studentId: 'SC-2020-0541',
+      studentId: 'SCC-2020-0541',
       fullName: 'Maria Cristina Santos',
       batchYear: '2024',
       course: 'B.S. Computer Science',
@@ -1247,18 +1250,18 @@ export const INITIAL_REGISTRY_CONFLICTS: RegistrationConflictRecord[] = [
     confidenceScore: 82,
     flaggedAt: '2026-09-14T08:05:00Z',
     status: 'pending',
-    notes: 'Student ID SC-2020-0541 is already bound to an active registered alumni user account. Manual inspection needed to prevent duplicate account creation or credential hijacking.'
+    notes: 'Student ID SCC-2020-0541 is already bound to an active registered alumni user account. Manual inspection needed to prevent duplicate account creation or credential hijacking.'
   },
   {
     id: 'conflict_04',
     applicantName: 'Paolo Jose Mendoza',
     applicantEmail: 'p.mendoza99@gmail.com',
-    applicantStudentId: 'SC-2018-0554',
+    applicantStudentId: 'SCC-2018-0554',
     applicantBatch: '2022',
     applicantCourse: 'B.S. Business Administration',
-    targetRegistryStudentId: 'SC-2018-0554',
+    targetRegistryStudentId: 'SCC-2018-0554',
     registryRecord: {
-      studentId: 'SC-2018-0554',
+      studentId: 'SCC-2018-0554',
       fullName: 'Paolo Mendoza',
       batchYear: '2022',
       course: 'B.S. Hospitality Management',

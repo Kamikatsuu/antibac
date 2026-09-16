@@ -421,9 +421,9 @@ export async function runCentenaryLongevityAudit(data: {
     details: `Earliest batch supported: ${batches[batches.length - 1]} (Founding Era). Furthest projected batch: ${batches[0]} (+50 years into the future).`
   });
 
-  // Test 3: Centenary Student ID Pattern Formula (SC-YYYY-XXXX)
-  const sampleCenturyIds = ['SC-1968-001', 'SC-2020-0192', 'SC-2075-8812', 'SC-2124-9901'];
-  const regex = /^SC-(19[5-9]\d|20\d\d|21[0-5]\d)-\d{3,5}$/;
+  // Test 3: Centenary Student ID Pattern Formula (SCC-YYYY-XXXX)
+  const sampleCenturyIds = ['SCC-1968-001', 'SCC-2020-0192', 'SCC-2075-8812', 'SCC-2124-9901'];
+  const regex = /^(SCC|SC)-(19[5-9]\d|20\d\d|21[0-5]\d)-\d{3,5}$/;
   const allIdsValid = sampleCenturyIds.every((id) => regex.test(id));
 
   results.push({

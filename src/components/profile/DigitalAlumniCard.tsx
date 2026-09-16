@@ -4,14 +4,12 @@ import {
   RotateCw,
   QrCode,
   ShieldCheck,
-  Sparkles,
   Wifi,
   Copy,
   Check,
   Download,
   Maximize2,
   X,
-  ExternalLink,
   GraduationCap
 } from 'lucide-react';
 import { UserProfile } from '../../types';
@@ -30,29 +28,69 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
   const [showFullNumber, setShowFullNumber] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [sealImgSrc, setSealImgSrc] = useState('/assets/cecilians-seal.jpg');
 
   if (!user) return null;
 
-  const rawId = user.studentId || `SC-${user.batch || '2024'}-${user.uid.slice(-4).toUpperCase()}`;
-  const formattedId = rawId.startsWith('SC-') ? rawId : `SC-${rawId}`;
+  const getFormattedId = (u: UserProfile) => {
+    if (u.studentId) {
+      const clean = u.studentId.trim();
+      return clean.startsWith('SCC-')
+        ? clean
+        : clean.startsWith('SC-')
+        ? `SCC-${clean.slice(3)}`
+        : `SCC-${clean}`;
+    }
+    if (u.employeeId) {
+      const clean = u.employeeId.trim();
+      return clean.startsWith('SCC-') ? clean : `SCC-${clean}`;
+    }
+    if (u.role === 'admin') return `SCC-ADM-${u.uid.slice(-3).toUpperCase()}`;
+    if (u.role === 'registrar') return `SCC-REG-${u.uid.slice(-3).toUpperCase()}`;
+    if (u.role === 'staff') return `SCC-STAFF-${u.uid.slice(-3).toUpperCase()}`;
+    if (u.role === 'employer') return `SCC-EMP-${u.uid.slice(-3).toUpperCase()}`;
+    if (u.role === 'moderator') return `SCC-MOD-${u.uid.slice(-3).toUpperCase()}`;
+    return `SCC-${u.batch || '2024'}-${u.uid.slice(-4).toUpperCase()}`;
+  };
 
-  // Mask card number like a credit card: SC •••• •••• 2024
+  const formattedId = getFormattedId(user);
+
+  const getRolePassTitle = (role?: string) => {
+    switch (role) {
+      case 'admin':
+        return 'ADMINISTRATIVE PASS';
+      case 'registrar':
+        return 'OFFICIAL REGISTRAR PASS';
+      case 'staff':
+        return 'FACULTY & STAFF PASS';
+      case 'employer':
+        return 'CORPORATE PARTNER PASS';
+      case 'student':
+        return 'STUDENT DIGITAL PASS';
+      case 'moderator':
+        return 'MODERATOR PASS';
+      default:
+        return 'ALUMNI DIGITAL PASS';
+    }
+  };
+
+  // Mask card number like a credit card: SCC •••• •••• 2024
   const maskedId = showFullNumber
     ? formattedId
-    : `SC •••• •••• ${user.batch || formattedId.slice(-4)}`;
+    : `SCC •••• •••• ${user.batch || formattedId.slice(-4)}`;
 
   const handleCopyCard = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard?.writeText(formattedId);
     setCopied(true);
-    showToast(`Alumni Card ID (${formattedId}) copied to clipboard!`, 'success');
+    showToast(`Digital ID (${formattedId}) copied to clipboard!`, 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownloadCard = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.print();
-    showToast('Alumni Pass ready for printing or saving as PDF.', 'info');
+    showToast('Digital ID Pass ready for printing or saving as PDF.', 'info');
   };
 
   const cardFront = (
@@ -66,17 +104,18 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
       <div className="relative z-10 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <img
-            src="/assets/cecilians-seal.jpg"
+            src={sealImgSrc}
             alt="St. Cecilia's College Seal"
+            onError={() => setSealImgSrc('/assets/st-cecilias-college-seal.jpg')}
             referrerPolicy="no-referrer"
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-amber-400/80 shadow-md object-cover bg-white shrink-0"
           />
           <div className="min-w-0">
             <span className="text-[9px] sm:text-[10px] tracking-widest text-amber-300 font-semibold uppercase block truncate">
-              St. Cecilia’s College - Cebu
+              St. Cecilia’s College
             </span>
             <span className="text-xs sm:text-sm font-black tracking-wide text-white drop-shadow-xs block truncate">
-              ALUMNI DIGITAL PASS
+              {getRolePassTitle(user.role)}
             </span>
           </div>
         </div>
@@ -120,7 +159,7 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
             e.stopPropagation();
             setShowFullNumber(!showFullNumber);
           }}
-          className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/40 hover:bg-black/60 text-amber-200 border border-amber-400/20 transition-colors shrink-0"
+          className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/40 hover:bg-black/60 text-amber-200 border border-amber-400/20 transition-colors shrink-0 cursor-pointer"
         >
           {showFullNumber ? 'Hide' : 'Reveal'}
         </button>
@@ -134,20 +173,20 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
               {user.name}
             </span>
             {user.isVerified && (
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" title="Verified Graduate" />
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" title="Verified Credential" />
             )}
           </div>
           <span className="text-[9px] sm:text-[10px] text-amber-200/90 tracking-wide truncate block">
-            {user.course || 'Alumni Member'}
+            {user.course || user.department || user.headline || 'St. Cecilia’s College Member'}
           </span>
         </div>
 
         <div className="text-right shrink-0">
           <span className="text-[8px] sm:text-[9px] text-amber-300/80 uppercase tracking-widest block font-medium">
-            CLASS / STATUS
+            ROLE / CLASS
           </span>
           <span className="text-[10px] sm:text-[11px] font-bold text-amber-100 uppercase tracking-wider">
-            {user.batch ? `BATCH ${user.batch}` : 'LIFETIME ALUM'}
+            {user.batch ? `BATCH ${user.batch}` : user.role.toUpperCase()}
           </span>
         </div>
       </div>
@@ -173,13 +212,13 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
         {/* Security / Barcode representation */}
         <div className="p-2 bg-black/40 rounded-lg border border-amber-500/20 flex items-center justify-between">
           <div className="space-y-0.5 text-[9px] text-stone-300">
-            <p className="font-semibold text-amber-300">OFFICIAL ALUMNI IDENTIFICATION</p>
+            <p className="font-semibold text-amber-300">OFFICIAL INSTITUTIONAL IDENTIFICATION</p>
             <p className="text-[8px] text-stone-400 leading-tight">
-              Property of St. Cecilia's College Alumni Association. Valid for campus entry, library access, and certified alumni privileges.
+              Property of St. Cecilia's College. Valid for campus entry, library access, registrar services, and certified institutional privileges.
             </p>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-[8px] text-amber-400 block font-mono">REGISTRAR SEAL</span>
+            <span className="text-[8px] text-amber-400 block font-mono">SCC SEAL</span>
             <span className="text-[10px] text-emerald-400 font-bold block">VALIDATED</span>
           </div>
         </div>
@@ -242,7 +281,7 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
           <button
             type="button"
             onClick={() => setIsFlipped(!isFlipped)}
-            className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-200 border border-stone-700/80 font-semibold transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-200 border border-stone-700/80 font-semibold transition-colors shadow-2xs cursor-pointer"
           >
             <RotateCw className="w-3.5 h-3.5 text-amber-400" />
             <span>{isFlipped ? 'View Front' : 'Flip to Back'}</span>
@@ -252,8 +291,8 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
             <button
               type="button"
               onClick={handleCopyCard}
-              className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-200 border border-stone-700/80 font-medium transition-colors shadow-2xs"
-              title="Copy Alumni Card ID"
+              className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-200 border border-stone-700/80 font-medium transition-colors shadow-2xs cursor-pointer"
+              title="Copy Digital ID"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-amber-400" />}
               <span>{copied ? 'Copied' : 'Copy ID'}</span>
@@ -262,7 +301,7 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
             <button
               type="button"
               onClick={() => setIsFullScreen(true)}
-              className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold transition-colors shadow-2xs cursor-pointer"
               title="Full screen gate pass for campus scanning"
             >
               <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
@@ -274,41 +313,41 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
 
       {/* Full Screen Gate Pass Modal for Campus Turnstiles & Verification */}
       {isFullScreen && (
-        <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in">
-          <div className="bg-stone-900 border border-amber-500/30 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl flex flex-col items-center gap-4">
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in">
+          <div className="bg-stone-900 border border-amber-500/30 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl flex flex-col items-center gap-4 max-h-[95vh] overflow-y-auto">
             <div className="w-full flex items-center justify-between pb-3 border-b border-stone-800">
               <div className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-amber-400" />
-                <span className="font-bold text-sm text-amber-200">Official Campus Gate Pass</span>
+                <span className="font-bold text-sm text-amber-200">St. Cecilia's College Turnstile Pass</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFullScreen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800"
+                className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Render large card front */}
+            {/* Render card front */}
             <div className="w-full aspect-[1.586/1]">{cardFront}</div>
 
             {/* High-Contrast Turnstile QR Code */}
-            <div className="bg-white p-4 rounded-xl flex flex-col items-center gap-2 text-stone-900">
+            <div className="bg-white p-4 rounded-xl flex flex-col items-center gap-2 text-stone-900 w-full">
               <QrCode className="w-36 h-36 text-black" />
               <div className="text-center">
-                <div className="font-mono text-xs font-black tracking-widest">{formattedId}</div>
-                <div className="text-[10px] text-stone-500 font-medium">
-                  Scan at Turnstile Gate / Library Circulation Desk
+                <div className="font-mono text-sm font-black tracking-widest text-[#8B181B]">{formattedId}</div>
+                <div className="text-[11px] text-stone-600 font-medium">
+                  Scan at Turnstile Gate • Library Circulation • Registrar
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full">
+            <div className="flex items-center gap-3 w-full pt-1">
               <button
                 type="button"
                 onClick={handleDownloadCard}
-                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
               >
                 <Download className="w-4 h-4" />
                 <span>Print / Save Pass</span>
@@ -316,7 +355,7 @@ export const DigitalAlumniCard: React.FC<DigitalAlumniCardProps> = ({ user: prop
               <button
                 type="button"
                 onClick={() => setIsFullScreen(false)}
-                className="px-5 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold rounded-xl text-xs"
+                className="px-5 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold rounded-xl text-xs cursor-pointer"
               >
                 Close
               </button>

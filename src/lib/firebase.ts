@@ -7,9 +7,11 @@ import {
   getRedirectResult,
   signOut,
   onAuthStateChanged,
+  signInAnonymously,
   User as FirebaseUser
 } from 'firebase/auth';
 import {
+  initializeFirestore,
   getFirestore,
   collection,
   doc,
@@ -41,7 +43,7 @@ import {
 
 // The designated Firestore Database ID
 export const FIRESTORE_DATABASE_ID =
-  firebaseConfig.firestoreDatabaseId || 'ai-studio-stceciliasalumni-08b3c8f5-ceec-47bf-a62e-a1ee29441dab';
+  firebaseConfig.firestoreDatabaseId || 'ai-studio-remixant-68ffa68b-37dd-45da-b7c6-99de097a8d90';
 
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -49,8 +51,27 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 // Initialize Auth
 export const auth = getAuth(app);
 
-// Initialize Firestore strictly with the target database ID
-export const db = getFirestore(app, FIRESTORE_DATABASE_ID);
+// Attempt anonymous sign-in so that Firestore operations have an active auth context if available
+if (typeof window !== 'undefined') {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      signInAnonymously(auth).catch((err) => {
+        console.info('Firebase anonymous auth notice:', err?.message);
+      });
+    }
+  });
+}
+
+// Initialize Firestore strictly with the target database ID and long polling for iFrame reliability
+let firestoreDbInstance: any;
+try {
+  firestoreDbInstance = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  }, FIRESTORE_DATABASE_ID);
+} catch {
+  firestoreDbInstance = getFirestore(app, FIRESTORE_DATABASE_ID);
+}
+export const db = firestoreDbInstance;
 
 /**
  * Validate Connection to Firestore on boot
@@ -59,8 +80,12 @@ async function testConnection() {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error('Please check your Firebase configuration.');
+    if (error instanceof Error) {
+      if (error.message.includes('the client is offline') || error.message.includes('unavailable')) {
+        console.info('Firestore client initialized; will sync with Cloud backend once connection is ready.');
+      } else {
+        console.warn('Firestore connection check notice:', error.message);
+      }
     }
   }
 }
@@ -686,7 +711,6 @@ export async function saveRegistryRecordsBatchToFirestore(
  * Fetch all registry records from Firestore
  */
 export async function getRegistryRecordsFromFirestore(): Promise<StudentVerificationRecord[]> {
-  if (!auth.currentUser) return [];
   try {
     const colRef = collection(db, FIRESTORE_COLLECTIONS.REGISTRY_RECORDS);
     const snap = await getDocs(colRef);
@@ -738,7 +762,6 @@ export async function markRegistryRecordRegisteredInFirestore(
  * Real-time subscription to registry records
  */
 export function subscribeToRegistryRecords(onUpdate: (records: StudentVerificationRecord[]) => void) {
-  if (!auth.currentUser) return () => {};
   const colRef = collection(db, FIRESTORE_COLLECTIONS.REGISTRY_RECORDS);
   return onSnapshot(
     colRef,

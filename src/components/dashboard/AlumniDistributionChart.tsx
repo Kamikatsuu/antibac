@@ -1,13 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend
-} from 'recharts';
-import {
   GraduationCap,
   Building2,
   Calendar,
@@ -76,17 +68,45 @@ function getDepartmentFromProfile(user: UserProfile): string {
   return user.course || 'Institutional Programs';
 }
 
+// Compute SVG path for a donut arc segment
+function getArcPath(
+  cx: number,
+  cy: number,
+  rInner: number,
+  rOuter: number,
+  startAngle: number,
+  endAngle: number
+): string {
+  // If single slice occupies full circle
+  if (endAngle - startAngle >= 2 * Math.PI - 0.001) {
+    return `M ${cx} ${cy - rOuter} A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy + rOuter} A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy - rOuter} M ${cx} ${cy - rInner} A ${rInner} ${rInner} 0 1 1 ${cx} ${cy + rInner} A ${rInner} ${rInner} 0 1 1 ${cx} ${cy - rInner} Z`;
+  }
+
+  const x1 = cx + rOuter * Math.cos(startAngle);
+  const y1 = cy + rOuter * Math.sin(startAngle);
+  const x2 = cx + rOuter * Math.cos(endAngle);
+  const y2 = cy + rOuter * Math.sin(endAngle);
+  const x3 = cx + rInner * Math.cos(endAngle);
+  const y3 = cy + rInner * Math.sin(endAngle);
+  const x4 = cx + rInner * Math.cos(startAngle);
+  const y4 = cy + rInner * Math.sin(startAngle);
+  const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+
+  return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${largeArc} 0 ${x4} ${y4} Z`;
+}
+
 export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = ({
   users,
   currentUser
 }) => {
   const [viewMode, setViewMode] = useState<'department' | 'batch'>('department');
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   // Filter to alumni community members
   const alumniUsers = useMemo(() => {
     const list = users.filter((u) => u.role === 'alumni');
-    // If no users flagged as alumni role yet, fall back to all users with batch/course
     return list.length > 0 ? list : users;
   }, [users]);
 
@@ -103,7 +123,7 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
       .map(([name, value]) => ({
         name,
         value,
-        percentage: ((value / total) * 100).toFixed(1)
+        percentage: Number(((value / total) * 100).toFixed(1))
       }))
       .sort((a, b) => b.value - a.value);
   }, [alumniUsers]);
@@ -121,10 +141,9 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
       .map(([name, value]) => ({
         name,
         value,
-        percentage: ((value / total) * 100).toFixed(1)
+        percentage: Number(((value / total) * 100).toFixed(1))
       }))
       .sort((a, b) => {
-        // Sort descending by batch year if possible
         const yearA = parseInt(a.name.replace(/\D/g, ''), 10) || 0;
         const yearB = parseInt(b.name.replace(/\D/g, ''), 10) || 0;
         return yearB - yearA;
@@ -143,38 +162,35 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
   const userDept = currentUser ? getDepartmentFromProfile(currentUser) : null;
   const userBatch = currentUser?.batch ? `Class of ${currentUser.batch}` : null;
 
-  // Custom Tooltip component for Recharts
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 rounded-xl border border-stone-200 shadow-lg text-xs z-50">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="w-2.5 h-2.5 rounded-full inline-block"
-              style={{ backgroundColor: payload[0].fill }}
-            />
-            <span className="font-bold text-stone-900">{data.name}</span>
-          </div>
-          <div className="flex items-center justify-between gap-4 text-stone-600 mt-1">
-            <span>Alumni Count:</span>
-            <span className="font-semibold text-stone-900">{data.value} graduates</span>
-          </div>
-          <div className="flex items-center justify-between gap-4 text-stone-600">
-            <span>Community Share:</span>
-            <span className="font-bold text-blue-600">{data.percentage}%</span>
-          </div>
-          {((viewMode === 'department' && userDept === data.name) ||
-            (viewMode === 'batch' && userBatch === data.name)) && (
-            <div className="mt-1.5 pt-1.5 border-t border-stone-100 text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
-              ✓ Your graduation cohort
-            </div>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+  // Compute donut slices angles with gaps
+  const slices = useMemo(() => {
+    const total = activeData.reduce((acc, curr) => acc + curr.value, 0) || 1;
+    let currentAngle = -Math.PI / 2; // Start from top 12 o'clock
+
+    return activeData.map((item, index) => {
+      const sliceAngle = (item.value / total) * (2 * Math.PI);
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + sliceAngle;
+      currentAngle += sliceAngle;
+
+      const pad = activeData.length > 1 ? Math.min(0.03, sliceAngle * 0.1) : 0;
+      const paddedStart = startAngle + pad / 2;
+      const paddedEnd = endAngle - pad / 2;
+
+      return {
+        ...item,
+        index,
+        color: activeColors[index % activeColors.length],
+        startAngle,
+        endAngle,
+        paddedStart,
+        paddedEnd
+      };
+    });
+  }, [activeData, activeColors]);
+
+  const activeSegmentName = hoveredSegment || selectedSegment;
+  const activeSegmentData = activeData.find((d) => d.name === activeSegmentName);
 
   return (
     <div className="bg-white p-5 sm:p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-5">
@@ -204,8 +220,9 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
             onClick={() => {
               setViewMode('department');
               setSelectedSegment(null);
+              setHoveredSegment(null);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               viewMode === 'department'
                 ? 'bg-white text-blue-700 shadow-2xs font-bold'
                 : 'text-stone-600 hover:text-stone-900'
@@ -220,8 +237,9 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
             onClick={() => {
               setViewMode('batch');
               setSelectedSegment(null);
+              setHoveredSegment(null);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               viewMode === 'batch'
                 ? 'bg-white text-blue-700 shadow-2xs font-bold'
                 : 'text-stone-600 hover:text-stone-900'
@@ -259,14 +277,14 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
 
         <div className="bg-stone-50 p-3 rounded-xl border border-stone-200/80">
           <div className="flex items-center gap-1.5 text-stone-500 text-[11px] font-medium">
-            <GraduationCap className="w-3.5 h-3.5 text-purple-600" />
+            <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
             <span>Largest Batch</span>
           </div>
-          <div className="mt-1 font-bold text-sm text-stone-900 truncate">
+          <div className="mt-1 font-bold text-sm text-stone-900 truncate" title={topBatch}>
             {topBatch}
           </div>
           <div className="text-[10px] text-purple-600 font-medium">
-            {batchData[0]?.value || 0} registered graduates
+            {batchData[0]?.value || 0} registered alumni
           </div>
         </div>
 
@@ -276,7 +294,7 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
             <span>Your Cohort</span>
           </div>
           <div className="mt-1 font-bold text-sm text-stone-900 truncate">
-            {currentUser?.batch ? `Batch ${currentUser.batch}` : 'Alumnus'}
+            {viewMode === 'department' ? (userDept || 'General') : (userBatch || 'Alumni')}
           </div>
           <div className="text-[10px] text-stone-500 truncate" title={currentUser?.course}>
             {currentUser?.course || 'Enrolled Member'}
@@ -286,57 +304,93 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
 
       {/* Main Chart + Legend Display */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        {/* Recharts Pie Chart Canvas */}
-        <div className="lg:col-span-6 h-64 sm:h-72 w-full flex items-center justify-center relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={activeData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={95}
-                paddingAngle={3}
-                dataKey="value"
-                onClick={(entry) =>
-                  setSelectedSegment(selectedSegment === entry.name ? null : entry.name)
-                }
-              >
-                {activeData.map((entry, index) => {
-                  const isSelected = selectedSegment === entry.name;
-                  const isUserCohort =
-                    (viewMode === 'department' && userDept === entry.name) ||
-                    (viewMode === 'batch' && userBatch === entry.name);
-                  return (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={activeColors[index % activeColors.length]}
-                      stroke={isSelected || isUserCohort ? '#1e293b' : '#ffffff'}
-                      strokeWidth={isSelected ? 3 : isUserCohort ? 2 : 1.5}
-                      className="cursor-pointer transition-all hover:opacity-90"
-                    />
-                  );
-                })}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+        {/* Interactive SVG Donut Chart Canvas */}
+        <div
+          className="lg:col-span-6 h-64 sm:h-72 w-full flex items-center justify-center relative select-none"
+          onMouseLeave={() => {
+            setHoveredSegment(null);
+            setTooltipPos(null);
+          }}
+        >
+          <svg
+            viewBox="0 0 280 280"
+            className="w-56 h-56 sm:w-64 sm:h-64 transform drop-shadow-xs"
+          >
+            <g transform="translate(140, 140)">
+              {slices.map((slice) => {
+                const isSelected = selectedSegment === slice.name;
+                const isHovered = hoveredSegment === slice.name;
+                const isUserCohort =
+                  (viewMode === 'department' && userDept === slice.name) ||
+                  (viewMode === 'batch' && userBatch === slice.name);
+
+                const rInner = 68;
+                const rOuter = isSelected ? 106 : isHovered ? 104 : 98;
+                const pathData = getArcPath(0, 0, rInner, rOuter, slice.paddedStart, slice.paddedEnd);
+
+                return (
+                  <path
+                    key={slice.name}
+                    d={pathData}
+                    fill={slice.color}
+                    stroke={isSelected ? '#0f172a' : isUserCohort ? '#1e293b' : '#ffffff'}
+                    strokeWidth={isSelected ? 3 : isUserCohort ? 2 : 1.5}
+                    className="cursor-pointer transition-all duration-200 hover:opacity-90"
+                    onMouseEnter={(e) => {
+                      setHoveredSegment(slice.name);
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setTooltipPos({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setTooltipPos({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top
+                      });
+                    }}
+                    onClick={() => {
+                      setSelectedSegment(selectedSegment === slice.name ? null : slice.name);
+                    }}
+                  />
+                );
+              })}
+            </g>
+          </svg>
 
           {/* Centered Donut Summary */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
-              {viewMode === 'department' ? 'Departments' : 'Batches'}
-            </span>
-            <span className="text-2xl font-extrabold text-stone-900 leading-none mt-0.5">
-              {activeData.length}
-            </span>
-            <span className="text-[10px] text-blue-600 font-medium mt-1">
-              Active Cohorts
-            </span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+            {activeSegmentData ? (
+              <>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 truncate max-w-[130px]">
+                  {activeSegmentData.name}
+                </span>
+                <span className="text-2xl font-extrabold text-stone-900 leading-none mt-0.5">
+                  {activeSegmentData.value}
+                </span>
+                <span className="text-[11px] font-bold text-stone-500 mt-1">
+                  {activeSegmentData.percentage}% of Alumni
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+                  {viewMode === 'department' ? 'Departments' : 'Batches'}
+                </span>
+                <span className="text-2xl font-extrabold text-stone-900 leading-none mt-0.5">
+                  {activeData.length}
+                </span>
+                <span className="text-[10px] text-blue-600 font-medium mt-1">
+                  Active Cohorts
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Detailed Breakdown Legend List */}
+        {/* Detailed Breakdown Legend List with Progress Bars */}
         <div className="lg:col-span-6 space-y-2 max-h-72 overflow-y-auto pr-1">
           <div className="text-xs font-bold text-stone-700 flex items-center justify-between pb-1.5 border-b border-stone-100">
             <span>
@@ -347,6 +401,7 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
 
           {activeData.map((item, index) => {
             const isSelected = selectedSegment === item.name;
+            const isHovered = hoveredSegment === item.name;
             const isUserCohort =
               (viewMode === 'department' && userDept === item.name) ||
               (viewMode === 'batch' && userBatch === item.name);
@@ -355,32 +410,49 @@ export const AlumniDistributionChart: React.FC<AlumniDistributionChartProps> = (
               <div
                 key={item.name}
                 onClick={() => setSelectedSegment(isSelected ? null : item.name)}
-                className={`flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer text-xs ${
+                onMouseEnter={() => setHoveredSegment(item.name)}
+                onMouseLeave={() => setHoveredSegment(null)}
+                className={`flex flex-col p-2 rounded-xl transition-all cursor-pointer text-xs ${
                   isSelected
-                    ? 'bg-blue-50/80 border border-blue-200'
-                    : 'hover:bg-stone-50 border border-transparent'
+                    ? 'bg-blue-50/90 border border-blue-200'
+                    : isHovered
+                    ? 'bg-stone-50/90 border border-stone-200'
+                    : 'hover:bg-stone-50/70 border border-transparent'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
-                    style={{ backgroundColor: activeColors[index % activeColors.length] }}
-                  />
-                  <div className="truncate">
-                    <span className="font-semibold text-stone-800 truncate block">
-                      {item.name}
-                    </span>
-                    {isUserCohort && (
-                      <span className="text-[10px] text-emerald-600 font-bold block">
-                        ★ Your Cohort
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
+                      style={{ backgroundColor: activeColors[index % activeColors.length] }}
+                    />
+                    <div className="truncate">
+                      <span className="font-semibold text-stone-800 truncate block">
+                        {item.name}
                       </span>
-                    )}
+                      {isUserCohort && (
+                        <span className="text-[10px] text-emerald-600 font-bold block">
+                          ★ Your Cohort
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="font-bold text-stone-900">{item.value}</span>
+                    <span className="text-[11px] text-stone-400 ml-1.5">({item.percentage}%)</span>
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <span className="font-bold text-stone-900">{item.value}</span>
-                  <span className="text-[11px] text-stone-400 ml-1.5">({item.percentage}%)</span>
+                {/* Progress share bar */}
+                <div className="w-full bg-stone-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.max(4, item.percentage))}%`,
+                      backgroundColor: activeColors[index % activeColors.length]
+                    }}
+                  />
                 </div>
               </div>
             );
